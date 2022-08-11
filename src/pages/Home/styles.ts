@@ -52,6 +52,11 @@ const BaseInput = styled.input`
 `
 export const TaskInput = styled(BaseInput)`
   flex: 1;
+
+  // Remove a seta que vem por default no datalist
+  &::-webkit-calendar-picker-indicator {
+    display: none !important;
+  }
 `
 
 export const MinutesAmountInput = styled(BaseInput)`
