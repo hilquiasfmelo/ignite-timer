@@ -1,5 +1,7 @@
 import { Play } from 'phosphor-react'
 import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import * as zod from 'zod'
 
 import {
   CountdownContainer,
@@ -11,14 +13,27 @@ import {
   TaskInput,
 } from './styles'
 
+const newCycleFormValidationSchema = zod.object({
+  task: zod.string().min(1, 'Informe a tarefa'),
+  minutesAmount: zod
+    .number()
+    .min(5, 'O clico precisa ser de no mínimo 5 minutos.')
+    .max(60, 'O clico precisa ser de no máximo 60 minutos.'),
+})
+
 export function Home() {
-  const { register, handleSubmit, watch } = useForm()
+  const { register, handleSubmit, watch } = useForm({
+    // Deve-se passar o schema de validação
+    resolver: zodResolver(newCycleFormValidationSchema),
+  })
 
   function handleCreateNewCycle(data: any) {
     console.log(data)
   }
 
+  // Observa se há mudanças na variável
   const task = watch('task')
+
   const isSubmitDisabled = !task
 
   return (
@@ -72,3 +87,9 @@ export function Home() {
     </HomeContainer>
   )
 }
+
+/**
+ * Instalar a biblioteca @hookform/resolvers,
+ * porque ela irá intregar o react-hook-form
+ * com as bibliotecas de validação.
+ */
