@@ -21,17 +21,25 @@ const newCycleFormValidationSchema = zod.object({
     .max(60, 'O clico precisa ser de no máximo 60 minutos.'),
 })
 
+// Faz referÊncia da variável JavaScriot dentro do TypeScript.
+type INewCycleFormData = zod.infer<typeof newCycleFormValidationSchema>
+
 export function Home() {
-  const { register, handleSubmit, watch } = useForm({
-    // Deve-se passar o schema de validação
+  const { register, handleSubmit, watch } = useForm<INewCycleFormData>({
+    // Deve-se passar o schema de validação.
     resolver: zodResolver(newCycleFormValidationSchema),
+    // Explícita o valor inicial de cada campo.
+    defaultValues: {
+      task: '',
+      minutesAmount: 0,
+    },
   })
 
-  function handleCreateNewCycle(data: any) {
+  function handleCreateNewCycle(data: INewCycleFormData) {
     console.log(data)
   }
 
-  // Observa se há mudanças na variável
+  // Observa se há mudanças na variável.
   const task = watch('task')
 
   const isSubmitDisabled = !task
