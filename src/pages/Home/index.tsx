@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { Play } from 'phosphor-react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -12,7 +13,7 @@ import {
   StartCountdownButton,
   TaskInput,
 } from './styles'
-import { useState } from 'react'
+import { differenceInSeconds } from 'date-fns'
 
 const newCycleFormValidationSchema = zod.object({
   task: zod.string().min(1, 'Informe a tarefa'),
@@ -26,6 +27,7 @@ interface ICycle {
   id: string
   task: string
   minutesAmount: number
+  startDate: Date
 }
 
 // Faz referÊncia da variável JavaScriot dentro do TypeScript.
@@ -47,11 +49,25 @@ export function Home() {
     },
   })
 
+  const activeCycle = cycles.find((cycle) => cycle.id === activeCycleId)
+
+  useEffect(() => {
+    if (activeCycle) {
+      setInterval(() => {
+        setAmountSecondsPassed(
+          // Busca a diferença em segundos entre a data atual com a data de início do ciclo ativo
+          differenceInSeconds(new Date(), activeCycle.startDate),
+        )
+      }, 1000)
+    }
+  }, [activeCycle])
+
   function handleCreateNewCycle(data: INewCycleFormData) {
     const newCycle: ICycle = {
       id: crypto.randomUUID(),
       task: data.task,
       minutesAmount: data.minutesAmount,
+      startDate: new Date(),
     }
 
     setCycles((oldState) => [...oldState, newCycle])
@@ -61,8 +77,6 @@ export function Home() {
     // Reseta os campos do formulário para seu valor default.
     reset()
   }
-
-  const activeCycle = cycles.find((cycle) => cycle.id === activeCycleId)
 
   // Se tiver um ciclo ativo será convertido os minutos em segundos
   const totalSeconds = activeCycle ? activeCycle.minutesAmount * 60 : 0
