@@ -52,13 +52,20 @@ export function Home() {
   const activeCycle = cycles.find((cycle) => cycle.id === activeCycleId)
 
   useEffect(() => {
+    let interval: number
+
     if (activeCycle) {
-      setInterval(() => {
+      interval = setInterval(() => {
         setAmountSecondsPassed(
           // Busca a diferença em segundos entre a data atual com a data de início do ciclo ativo
           differenceInSeconds(new Date(), activeCycle.startDate),
         )
       }, 1000)
+    }
+
+    // Reseta os intervalos do clico em execução caso houver um novo a ser criado
+    return () => {
+      clearInterval(interval)
     }
   }, [activeCycle])
 
@@ -73,6 +80,7 @@ export function Home() {
     setCycles((oldState) => [...oldState, newCycle])
     // Seta no estado de activeCycleId o ID do ciclo que está ativo no momento
     setActiveCycleId(newCycle.id)
+    setAmountSecondsPassed(0)
 
     // Reseta os campos do formulário para seu valor default.
     reset()
@@ -95,6 +103,13 @@ export function Home() {
    */
   const minutes = String(minutesAmount).padStart(2, '0')
   const seconds = String(secondsAmount).padStart(2, '0')
+
+  // Mostra os minutos e segundos no título da aba do navegador
+  useEffect(() => {
+    if (activeCycle) {
+      document.title = `${minutes}:${seconds}`
+    }
+  }, [activeCycle, minutes, seconds])
 
   // Observa se há mudanças na variável.
   const task = watch('task')
