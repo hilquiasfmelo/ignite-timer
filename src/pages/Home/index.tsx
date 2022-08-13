@@ -12,6 +12,7 @@ import {
   StartCountdownButton,
   TaskInput,
 } from './styles'
+import { useState } from 'react'
 
 const newCycleFormValidationSchema = zod.object({
   task: zod.string().min(1, 'Informe a tarefa'),
@@ -21,10 +22,21 @@ const newCycleFormValidationSchema = zod.object({
     .max(60, 'O clico precisa ser de no máximo 60 minutos.'),
 })
 
+interface ICycle {
+  id: string
+  task: string
+  minutesAmount: number
+}
+
 // Faz referÊncia da variável JavaScriot dentro do TypeScript.
 type INewCycleFormData = zod.infer<typeof newCycleFormValidationSchema>
 
 export function Home() {
+  const [cycles, setCycles] = useState<ICycle[]>([])
+  const [activeCycleId, setActiveCycleId] = useState<string | undefined>(
+    undefined,
+  )
+
   const { register, handleSubmit, watch, reset } = useForm<INewCycleFormData>({
     // Deve-se passar o schema de validação.
     resolver: zodResolver(newCycleFormValidationSchema),
@@ -36,11 +48,23 @@ export function Home() {
   })
 
   function handleCreateNewCycle(data: INewCycleFormData) {
-    console.log(data)
+    const newCycle: ICycle = {
+      id: crypto.randomUUID(),
+      task: data.task,
+      minutesAmount: data.minutesAmount,
+    }
+
+    setCycles((oldState) => [...oldState, newCycle])
+    // Seta no estado de activeCycleId o ID do ciclo que está ativo no momento
+    setActiveCycleId(newCycle.id)
 
     // Reseta os campos do formulário para seu valor default.
     reset()
   }
+
+  const activeCycle = cycles.find((cycle) => cycle.id === activeCycleId)
+
+  console.log(activeCycle)
 
   // Observa se há mudanças na variável.
   const task = watch('task')
