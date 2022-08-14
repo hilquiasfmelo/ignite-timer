@@ -20,7 +20,7 @@ const newCycleFormValidationSchema = zod.object({
   task: zod.string().min(1, 'Informe a tarefa'),
   minutesAmount: zod
     .number()
-    .min(5, 'O clico precisa ser de no mínimo 5 minutos.')
+    .min(1, 'O clico precisa ser de no mínimo 5 minutos.')
     .max(60, 'O clico precisa ser de no máximo 60 minutos.'),
 })
 
@@ -30,6 +30,7 @@ interface ICycle {
   minutesAmount: number
   startDate: Date
   interruptedDate?: Date
+  finishedDate?: Date
 }
 
 // Faz referÊncia da variável JavaScriot dentro do TypeScript.
@@ -53,15 +54,36 @@ export function Home() {
 
   const activeCycle = cycles.find((cycle) => cycle.id === activeCycleId)
 
+  // Se tiver um ciclo ativo será convertido os minutos em segundos
+  const totalSeconds = activeCycle ? activeCycle.minutesAmount * 60 : 0
+
   useEffect(() => {
     let interval: number
 
     if (activeCycle) {
       interval = setInterval(() => {
-        setAmountSecondsPassed(
+        const secondsDifference =
           // Busca a diferença em segundos entre a data atual com a data de início do ciclo ativo
-          differenceInSeconds(new Date(), activeCycle.startDate),
-        )
+          differenceInSeconds(new Date(), activeCycle.startDate)
+
+        if (secondsDifference >= totalSeconds) {
+          setCycles((state) =>
+            state.map((cycle) => {
+              if (cycle.id === activeCycleId) {
+                // Guarda a data que o ciclo acabou
+                return { ...cycle, finishedDate: new Date() }
+              } else {
+                return cycle
+              }
+            }),
+          )
+
+          // Zera o contador em tela
+          setAmountSecondsPassed(totalSeconds)
+          clearInterval(interval)
+        } else {
+          setAmountSecondsPassed(secondsDifference)
+        }
       }, 1000)
     }
 
@@ -69,7 +91,7 @@ export function Home() {
     return () => {
       clearInterval(interval)
     }
-  }, [activeCycle])
+  }, [activeCycle, activeCycleId, totalSeconds])
 
   function handleCreateNewCycle(data: INewCycleFormData) {
     const newCycle: ICycle = {
@@ -89,8 +111,8 @@ export function Home() {
   }
 
   function handleInterruptCycle() {
-    setCycles(
-      cycles.map((cycle) => {
+    setCycles((state) =>
+      state.map((cycle) => {
         if (cycle.id === activeCycleId) {
           return { ...cycle, interruptedDate: new Date() }
         } else {
@@ -102,10 +124,6 @@ export function Home() {
     setActiveCycleId(null)
   }
 
-  console.log(cycles)
-
-  // Se tiver um ciclo ativo será convertido os minutos em segundos
-  const totalSeconds = activeCycle ? activeCycle.minutesAmount * 60 : 0
   // Recebe o valor atual em tempo real dos segundos
   const currentSeconds = activeCycle ? totalSeconds - amountSecondsPassed : 0
 
@@ -162,7 +180,7 @@ export function Home() {
             placeholder="00"
             disabled={!!activeCycle}
             step={5}
-            min={5}
+            min={1}
             max={60}
             {...register('minutesAmount', { valueAsNumber: true })}
           />
