@@ -1,30 +1,15 @@
 import { useEffect, useState } from 'react'
 import { HandPalm, Play } from 'phosphor-react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import * as zod from 'zod'
+import { differenceInSeconds } from 'date-fns'
 
 import {
-  CountdownContainer,
-  FormContainer,
   HomeContainer,
-  MinutesAmountInput,
-  Separator,
   StartCountdownButton,
   StopCountdownButton,
-  TaskInput,
 } from './styles'
-import { differenceInSeconds } from 'date-fns'
+
 import { NewCycleForm } from './components/NewCycleForm'
 import { Countdown } from './components/Countdown'
-
-const newCycleFormValidationSchema = zod.object({
-  task: zod.string().min(1, 'Informe a tarefa'),
-  minutesAmount: zod
-    .number()
-    .min(1, 'O clico precisa ser de no mínimo 5 minutos.')
-    .max(60, 'O clico precisa ser de no máximo 60 minutos.'),
-})
 
 interface ICycle {
   id: string
@@ -35,65 +20,11 @@ interface ICycle {
   finishedDate?: Date
 }
 
-// Faz referÊncia da variável JavaScript dentro do TypeScript.
-type INewCycleFormData = zod.infer<typeof newCycleFormValidationSchema>
-
 export function Home() {
   const [cycles, setCycles] = useState<ICycle[]>([])
   const [activeCycleId, setActiveCycleId] = useState<string | null>(null)
-  // Armazena a quantidade de segundos que já se passaram
-  const [amountSecondsPassed, setAmountSecondsPassed] = useState(0)
-
-  const { register, handleSubmit, watch, reset } = useForm<INewCycleFormData>({
-    // Deve-se passar o schema de validação.
-    resolver: zodResolver(newCycleFormValidationSchema),
-    // Define o valor inicial de cada campo.
-    defaultValues: {
-      task: '',
-      minutesAmount: 0,
-    },
-  })
 
   const activeCycle = cycles.find((cycle) => cycle.id === activeCycleId)
-
-  // Se tiver um ciclo ativo será convertido os minutos em segundos
-  const totalSeconds = activeCycle ? activeCycle.minutesAmount * 60 : 0
-
-  useEffect(() => {
-    let interval: number
-
-    if (activeCycle) {
-      interval = setInterval(() => {
-        const secondsDifference =
-          // Busca a diferença em segundos entre a data atual com a data de início do ciclo ativo
-          differenceInSeconds(new Date(), activeCycle.startDate)
-
-        if (secondsDifference >= totalSeconds) {
-          setCycles((state) =>
-            state.map((cycle) => {
-              if (cycle.id === activeCycleId) {
-                // Guarda a data que o ciclo acabou
-                return { ...cycle, finishedDate: new Date() }
-              } else {
-                return cycle
-              }
-            }),
-          )
-
-          // Zera o contador em tela
-          setAmountSecondsPassed(totalSeconds)
-          clearInterval(interval)
-        } else {
-          setAmountSecondsPassed(secondsDifference)
-        }
-      }, 1000)
-    }
-
-    // Reseta os intervalos do clico em execução caso houver um novo a ser criado
-    return () => {
-      clearInterval(interval)
-    }
-  }, [activeCycle, activeCycleId, totalSeconds])
 
   function handleCreateNewCycle(data: INewCycleFormData) {
     const newCycle: ICycle = {
@@ -158,7 +89,11 @@ export function Home() {
       <form onSubmit={handleSubmit(handleCreateNewCycle)}>
         <NewCycleForm />
 
-        <Countdown />
+        <Countdown
+          activeCycle={activeCycle}
+          setCycles={setCycles}
+          activeCycleId={activeCycleId}
+        />
 
         {activeCycle ? (
           <StopCountdownButton type="button" onClick={handleInterruptCycle}>
