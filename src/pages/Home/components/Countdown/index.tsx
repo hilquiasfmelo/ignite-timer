@@ -1,18 +1,12 @@
 import { differenceInSeconds } from 'date-fns'
-import { useEffect, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
+import { CyclesContext } from '../..'
 import { CountdownContainer, Separator } from './styles'
 
-interface ICountdownProps {
-  activeCycle: any
-  setCycles: any
-  activeCycleId: any
-}
+export function Countdown() {
+  const { activeCycle, activeCycleId, markCurrentCycleAsFinished } =
+    useContext(CyclesContext)
 
-export function Countdown({
-  activeCycle,
-  setCycles,
-  activeCycleId,
-}: ICountdownProps) {
   // Armazena a quantidade de segundos que já se passaram
   const [amountSecondsPassed, setAmountSecondsPassed] = useState(0)
 
@@ -29,16 +23,7 @@ export function Countdown({
           differenceInSeconds(new Date(), activeCycle.startDate)
 
         if (secondsDifference >= totalSeconds) {
-          setCycles((state) =>
-            state.map((cycle) => {
-              if (cycle.id === activeCycleId) {
-                // Guarda a data que o ciclo acabou
-                return { ...cycle, finishedDate: new Date() }
-              } else {
-                return cycle
-              }
-            }),
-          )
+          markCurrentCycleAsFinished()
 
           // Zera o contador em tela
           setAmountSecondsPassed(totalSeconds)
@@ -53,7 +38,30 @@ export function Countdown({
     return () => {
       clearInterval(interval)
     }
-  }, [activeCycle, activeCycleId, totalSeconds])
+  }, [activeCycle, activeCycleId, totalSeconds, markCurrentCycleAsFinished])
+
+  // Recebe o valor atual em tempo real dos segundos
+  const currentSeconds = activeCycle ? totalSeconds - amountSecondsPassed : 0
+
+  // Converte o total de segundos em minutos para poder exibir os dados em tela
+  // Math.floor é usado para quando a divisão der quebrada, arredondar para baixo/inteiro
+  const minutesAmount = Math.floor(currentSeconds / 60)
+  // Pega o resto de segudos que sobrou dos segundos atuais
+  const secondsAmount = currentSeconds % 60
+
+  /**
+   * PadStart => Diz quantos caracteres uma string vai ter.
+   * E se não tiver esse total, ele preenche no início da mesma o que dissermos
+   */
+  const minutes = String(minutesAmount).padStart(2, '0')
+  const seconds = String(secondsAmount).padStart(2, '0')
+
+  // Mostra os minutos e segundos no título da aba do navegador
+  useEffect(() => {
+    if (activeCycle) {
+      document.title = `${minutes}:${seconds}`
+    }
+  }, [activeCycle, minutes, seconds])
 
   return (
     <CountdownContainer>
