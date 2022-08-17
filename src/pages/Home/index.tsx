@@ -39,7 +39,15 @@ export function Home() {
     },
   })
 
-  const { handleSubmit, /* reset */ watch } = newCycleForm
+  const { handleSubmit, reset, watch } = newCycleForm
+
+  function handleCreateNewCycle(data: INewCycleFormData) {
+    // Função que cria um ciclo, vindo do Contexto
+    createNewCycle(data)
+
+    // Reseta os campos do formulário para seu valor default.
+    reset()
+  }
 
   // Observa se há mudanças na variável.
   const task = watch('task')
@@ -47,7 +55,7 @@ export function Home() {
 
   return (
     <HomeContainer>
-      <form onSubmit={handleSubmit(createNewCycle)}>
+      <form onSubmit={handleSubmit(handleCreateNewCycle)}>
         <FormProvider {...newCycleForm}>
           <NewCycleForm />
         </FormProvider>

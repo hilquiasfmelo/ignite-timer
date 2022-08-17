@@ -51,9 +51,6 @@ export function CyclesContextProvider({ children }: CyclesContextProps) {
     // Seta no estado de activeCycleId o ID do ciclo que está ativo no momento
     setActiveCycleId(newCycle.id)
     setAmountSecondsPassed(0)
-
-    // Reseta os campos do formulário para seu valor default.
-    // reset()
   }
 
   function interruptCurrentCycle() {
