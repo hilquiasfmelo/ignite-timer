@@ -22,7 +22,7 @@ export function Countdown() {
       interval = setInterval(() => {
         const secondsDifference =
           // Busca a diferença em segundos entre a data atual com a data de início do ciclo ativo
-          differenceInSeconds(new Date(), activeCycle.startDate)
+          differenceInSeconds(new Date(), new Date(activeCycle.startDate))
 
         if (secondsDifference >= totalSeconds) {
           markCurrentCycleAsFinished()

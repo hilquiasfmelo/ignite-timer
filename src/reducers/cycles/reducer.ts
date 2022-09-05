@@ -28,7 +28,7 @@ export function cyclesReducer(state: CyclesState, action: any) {
         return cycle.id === state.activeCycleId
       })
 
-      if (currentCycleIndex <= 0) {
+      if (currentCycleIndex < 0) {
         return state
       }
 
@@ -43,7 +43,7 @@ export function cyclesReducer(state: CyclesState, action: any) {
         return cycle.id === state.activeCycleId
       })
 
-      if (currentCycleIndex <= 0) {
+      if (currentCycleIndex < 0) {
         return state
       }
 
